@@ -31,7 +31,7 @@ function formatErrorMessage(msg: string): string {
 }
 
 async function request<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
-  const token = sessionStorage.getItem("token")
+  const token = sessionStorage.getItem("geotas_token")
   
   const headers = new Headers(options.headers)
   if (token) {

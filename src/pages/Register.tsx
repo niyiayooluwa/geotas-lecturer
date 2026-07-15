@@ -68,6 +68,8 @@ export default function Register() {
     </div>
   )
 
+  const isEmailError = error.toLowerCase().includes("email")
+
   return (
     <div className="w-full pb-8">
       <p className="text-sm font-medium text-slate-500 mb-2 uppercase tracking-wider">Lecturer portal</p>
@@ -75,7 +77,7 @@ export default function Register() {
       <p className="text-slate-500 mb-8">Sign up to manage your courses and track attendance.</p>
       
       <form onSubmit={handleSubmit} className="space-y-4">
-        {error && (
+        {error && !isEmailError && (
           <div className="rounded-md bg-red-50 p-3 text-sm text-red-600 border border-red-200">
             {error}
           </div>
@@ -105,16 +107,21 @@ export default function Register() {
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="email" className="text-slate-700">University Email (.edu.ng)</Label>
+          <Label htmlFor="email" className={isEmailError ? "text-red-600" : "text-slate-700"}>
+            University Email (.edu.ng)
+          </Label>
           <Input 
             id="email" 
             type="email" 
             required 
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            className="h-11"
+            className={`h-11 ${isEmailError ? "border-red-500 focus-visible:ring-red-500" : ""}`}
             placeholder="e.g. jdoe@uni.edu.ng"
           />
+          {isEmailError && (
+            <p className="text-sm font-medium text-red-600 mt-1">{error}</p>
+          )}
         </div>
         
         <div className="space-y-4">

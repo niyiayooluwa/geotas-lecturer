@@ -21,7 +21,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined)
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
-  const [token, setToken] = useState<string | null>(sessionStorage.getItem("token"))
+  const [token, setToken] = useState<string | null>(sessionStorage.getItem("geotas_token"))
   const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
@@ -33,9 +33,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       try {
         const userData = await api.get<User>("/me")
         setUser(userData)
+        sessionStorage.setItem("geotas_role", userData.role)
       } catch (err) {
         console.error("Session restoration failed:", err)
-        sessionStorage.removeItem("token")
+        sessionStorage.removeItem("geotas_token")
+        sessionStorage.removeItem("geotas_role")
         setToken(null)
       } finally {
         setIsLoading(false)
@@ -45,13 +47,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, [token])
 
   const login = (newToken: string, userData: User) => {
-    sessionStorage.setItem("token", newToken)
+    sessionStorage.setItem("geotas_token", newToken)
+    sessionStorage.setItem("geotas_role", userData.role)
     setToken(newToken)
     setUser(userData)
   }
 
   const logout = () => {
-    sessionStorage.removeItem("token")
+    sessionStorage.removeItem("geotas_token")
+    sessionStorage.removeItem("geotas_role")
     setToken(null)
     setUser(null)
   }
