@@ -6,6 +6,7 @@ import Register from "./pages/Register"
 import DashboardLayout from "./pages/DashboardLayout"
 import Dashboard from "./pages/Dashboard"
 import CourseView from "./pages/CourseView"
+import SessionReport from "./pages/SessionReport"
 import ProtectedRoute from "./components/ProtectedRoute"
 import LiveSession from "./pages/LiveSession"
 
@@ -22,6 +23,7 @@ function App() {
           <Route element={<DashboardLayout />}>
             <Route path="/" element={<Dashboard />} />
             <Route path="/courses/:id" element={<CourseView />} />
+            <Route path="/sessions/:id/report" element={<SessionReport />} />
           </Route>
           
           <Route path="/sessions/:id/live" element={
