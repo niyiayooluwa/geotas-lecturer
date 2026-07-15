@@ -142,9 +142,16 @@ export default function DashboardLayout() {
 
         <div className="p-3 border-t border-neutral-800">
           {!isCollapsed && (
-            <div className="px-4 py-3 mb-2 bg-neutral-800/50 rounded-lg">
-              <p className="text-sm font-medium text-white truncate">{user.first_name} {user.last_name}</p>
-              <p className="text-xs text-neutral-400 truncate">{user.email}</p>
+            <div className="px-4 py-3 mb-2 bg-neutral-800/50 rounded-lg flex items-center gap-3">
+              <img 
+                src={`https://api.dicebear.com/7.x/initials/svg?seed=${user?.first_name}+${user?.last_name}&backgroundColor=171717,0a0a0a,262626&textColor=ffffff`}
+                alt="User Avatar"
+                className="h-8 w-8 rounded-full border border-neutral-700"
+              />
+              <div className="overflow-hidden">
+                <p className="text-sm font-medium text-white truncate">{user.first_name} {user.last_name}</p>
+                <p className="text-xs text-neutral-400 truncate">{user.email}</p>
+              </div>
             </div>
           )}
           <Button 

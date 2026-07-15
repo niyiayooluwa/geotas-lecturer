@@ -618,7 +618,12 @@ export default function CourseView() {
                     .map(member => (
                     <div key={member.user_id} className="grid grid-cols-1 sm:grid-cols-12 gap-3 sm:gap-4 p-4 sm:items-center hover:bg-neutral-50/50 transition-colors">
                       <div className="col-span-4 flex items-center justify-between sm:block">
-                        <div className="font-medium text-neutral-900">
+                        <div className="font-medium text-neutral-900 flex items-center gap-3">
+                          <img 
+                            src={`https://api.dicebear.com/7.x/initials/svg?seed=${member.first_name}+${member.last_name}&backgroundColor=171717,0a0a0a,262626&textColor=ffffff`}
+                            alt={`${member.first_name}'s avatar`}
+                            className="h-8 w-8 rounded-full border border-neutral-200"
+                          />
                           {member.first_name} {member.last_name}
                         </div>
                         <span className="sm:hidden text-[10px] font-bold uppercase tracking-wider bg-neutral-100 text-neutral-600 px-2 py-0.5 rounded-md">
@@ -668,19 +673,57 @@ export default function CourseView() {
 
         {/* REPORTS TAB */}
         {activeTab === "reports" && (
-          <div className="space-y-4">
-            <Card className="border-neutral-200 shadow-sm">
-              <CardHeader>
-                <CardTitle>Overall Attendance</CardTitle>
-                <CardDescription>Master list of attendance across all sessions</CardDescription>
-              </CardHeader>
-              <CardContent className="flex flex-col items-center justify-center py-12 text-center text-neutral-500">
-                <p>Overall reports view is under construction.</p>
-                <Button className="mt-4" variant="outline" asChild>
-                  <Link to={`/courses/${id}/report`}>View Full Master Report</Link>
-                </Button>
-              </CardContent>
-            </Card>
+          <div className="space-y-6">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between bg-neutral-50 p-6 rounded-2xl border border-neutral-200 gap-4">
+              <div>
+                <h3 className="text-lg font-semibold text-neutral-900 mb-1">Course Master Report</h3>
+                <p className="text-sm text-neutral-500">View the aggregated attendance matrix for all students across all weeks.</p>
+              </div>
+              <Button 
+                className="bg-neutral-900 hover:bg-neutral-800 text-white whitespace-nowrap" 
+                onClick={() => navigate(`/courses/${course.id}/report`)}
+              >
+                View Master Report
+              </Button>
+            </div>
+            
+            <h3 className="text-lg font-semibold text-neutral-900 mt-8 mb-4">Historical Sessions</h3>
+            
+            {course.sessions?.length === 0 ? (
+              <div className="text-center py-12 bg-neutral-50 rounded-2xl border border-neutral-200 border-dashed">
+                <p className="text-neutral-500 font-medium">No sessions recorded yet.</p>
+                <p className="text-sm text-neutral-400 mt-1">Start a live session to begin tracking attendance.</p>
+              </div>
+            ) : (
+              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                {course.sessions?.map(session => (
+                  <Card key={session.id} className="border-neutral-200 shadow-sm hover:shadow-md transition-shadow">
+                    <CardHeader className="pb-3 border-b border-neutral-100 bg-neutral-50/50">
+                      <div className="flex justify-between items-start">
+                        <div>
+                          <CardTitle className="text-base">Week {session.week_number}</CardTitle>
+                          <CardDescription className="text-xs mt-1">
+                            {new Date(session.started_at).toLocaleDateString()}
+                          </CardDescription>
+                        </div>
+                        <div className={`px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider rounded-md ${
+                          session.status === 'active' 
+                            ? 'bg-blue-100 text-blue-700' 
+                            : 'bg-neutral-200 text-neutral-700'
+                        }`}>
+                          {session.status}
+                        </div>
+                      </div>
+                    </CardHeader>
+                    <CardContent className="pt-4 flex justify-between items-center">
+                      <Button variant="outline" className="w-full text-neutral-900 border-neutral-200 hover:bg-neutral-100" onClick={() => navigate(`/sessions/${session.id}/report`)}>
+                        View Session Report
+                      </Button>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            )}
           </div>
         )}
 
