@@ -3,7 +3,7 @@ import { Outlet, Navigate, Link } from "react-router-dom"
 import { useAuth } from "@/context/AuthContext"
 import { api } from "@/lib/api"
 import { Button } from "@/components/ui/button"
-import { LogOut, ChevronLeft, ChevronRight, LayoutDashboard, Settings, Search, Bell } from "lucide-react"
+import { LogOut, ChevronLeft, ChevronRight, LayoutDashboard, Search, Bell } from "lucide-react"
 import logoWhite from "@/assets/svgs/logo-white.svg"
 import logoBlack from "@/assets/svgs/logo-black.svg"
 
@@ -207,11 +207,7 @@ export default function DashboardLayout() {
               {!isCollapsed && "Dashboard"}
             </Link>
           </Button>
-          
-          <Button variant="ghost" className={`justify-start text-neutral-300 hover:text-white hover:bg-neutral-800 ${isCollapsed ? 'px-2 justify-center' : 'px-4'}`}>
-            <Settings className={`h-5 w-5 ${isCollapsed ? '' : 'mr-3'}`} />
-            {!isCollapsed && "Settings"}
-          </Button>
+
         </nav>
 
         <div className="p-3 border-t border-neutral-800">
