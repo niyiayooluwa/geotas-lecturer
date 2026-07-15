@@ -689,7 +689,7 @@ export default function CourseView() {
                         </span>
                       </div>
                       <div className="col-span-1 flex justify-end">
-                        {isOwner && member.user_id !== user?.id && (
+                        {member.user_id !== course?.owner_id && member.user_id !== user?.id && (
                           <Button 
                             variant="ghost" 
                             size="icon" 
@@ -782,7 +782,7 @@ export default function CourseView() {
                 <h3 className="text-lg font-semibold text-neutral-900 mb-1">Course Schedules</h3>
                 <p className="text-sm text-neutral-500">Weekly timetable for this course.</p>
               </div>
-              {isOwner && !isAddingSchedule && (
+              {!isAddingSchedule && (
                 <Button 
                   className="bg-neutral-900 hover:bg-neutral-800 text-white whitespace-nowrap" 
                   onClick={() => setIsAddingSchedule(true)}
@@ -792,7 +792,7 @@ export default function CourseView() {
               )}
             </div>
             
-            {isAddingSchedule && isOwner && (
+            {isAddingSchedule && (
               <Card className="border-neutral-200 shadow-sm border-dashed bg-neutral-50/50">
                 <CardHeader className="pb-3">
                   <CardTitle className="text-base">New Schedule</CardTitle>
@@ -841,7 +841,7 @@ export default function CourseView() {
             {schedules.length === 0 && !isAddingSchedule ? (
               <div className="text-center py-12 bg-neutral-50 rounded-2xl border border-neutral-200 border-dashed">
                 <p className="text-neutral-500 font-medium">No schedules set.</p>
-                {isOwner && <p className="text-sm text-neutral-400 mt-1">Add a schedule slot to notify students.</p>}
+                <p className="text-sm text-neutral-400 mt-1">Add a schedule slot to notify students.</p>
               </div>
             ) : (
               <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
@@ -864,13 +864,11 @@ export default function CourseView() {
                         <span className="font-medium">Venue:</span> {schedule.venue}
                       </div>
                     </CardContent>
-                    {isOwner && (
-                      <div className="absolute top-2 right-2 md:opacity-0 group-hover:opacity-100 transition-opacity">
-                        <Button variant="ghost" size="icon" className="h-8 w-8 text-neutral-400 hover:text-red-500 bg-white shadow-sm border border-neutral-200" onClick={() => deleteSchedule(schedule.id)}>
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    )}
+                    <div className="absolute top-2 right-2 md:opacity-0 group-hover:opacity-100 transition-opacity">
+                      <Button variant="ghost" size="icon" className="h-8 w-8 text-neutral-400 hover:text-red-500 bg-white shadow-sm border border-neutral-200" onClick={() => deleteSchedule(schedule.id)}>
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
                   </Card>
                 ))}
               </div>
@@ -885,7 +883,7 @@ export default function CourseView() {
               <CardHeader className="bg-neutral-50/50 border-b border-neutral-100 pb-4">
                 <CardTitle className="text-lg">Course Access</CardTitle>
                 <CardDescription>
-                  {isOwner ? "Share this code to let students join" : "Leave this course if you no longer teach it"}
+                  Share this code to let students and co-lecturers join
                 </CardDescription>
               </CardHeader>
               <CardContent className="flex flex-col items-center pt-6">
@@ -893,23 +891,21 @@ export default function CourseView() {
                   {course.invite_code || "---"}
                 </div>
                 
-                {isOwner ? (
-                  <>
-                    <Button 
-                      variant="outline" 
-                      className="w-full font-medium" 
-                      onClick={() => setConfirmAction({ type: "rotate" })}
-                      disabled={rotating}
-                    >
-                      <RefreshCw className={`mr-2 h-4 w-4 ${rotating ? 'animate-spin' : ''}`} />
-                      {rotating ? "Rotating..." : "Rotate Invite Code"}
-                    </Button>
-                    <p className="text-xs text-neutral-500 mt-4 text-center leading-relaxed">
-                      Rotating will immediately invalidate the old code. Students who already joined will not be affected.
-                    </p>
-                  </>
-                ) : (
-                  <>
+                <Button 
+                  variant="outline" 
+                  className="w-full font-medium" 
+                  onClick={() => setConfirmAction({ type: "rotate" })}
+                  disabled={rotating}
+                >
+                  <RefreshCw className={`mr-2 h-4 w-4 ${rotating ? 'animate-spin' : ''}`} />
+                  {rotating ? "Rotating..." : "Rotate Invite Code"}
+                </Button>
+                <p className="text-xs text-neutral-500 mt-4 text-center leading-relaxed">
+                  Rotating will immediately invalidate the old code. Students who already joined will not be affected.
+                </p>
+
+                {!isOwner && (
+                  <div className="w-full mt-6 pt-6 border-t border-neutral-100">
                     <Button 
                       variant="destructive" 
                       className="w-full font-medium" 
@@ -920,69 +916,67 @@ export default function CourseView() {
                     <p className="text-xs text-neutral-500 mt-4 text-center leading-relaxed">
                       Leaving this course will remove your access. You will need a new invite code to rejoin.
                     </p>
-                  </>
+                  </div>
                 )}
               </CardContent>
             </Card>
 
-            {isOwner && (
-              <>
-                <Card className="border-neutral-200 shadow-sm col-span-1">
-                  <CardHeader className="bg-neutral-50/50 border-b border-neutral-100 pb-4">
-                    <CardTitle className="text-lg">Geofence Sensitivity</CardTitle>
-                    <CardDescription>Adjust the strictness of the GPS bounds</CardDescription>
-                  </CardHeader>
-                  <CardContent className="pt-6">
-                    <div className="mb-4">
-                      <div className="flex justify-between items-center mb-2">
-                        <Label className="text-sm text-neutral-700 font-medium">Confidence Threshold</Label>
-                        <span className="text-xs font-bold bg-neutral-100 px-2 py-1 rounded text-neutral-600">
-                          {Math.round(confidenceThreshold * 100)}%
-                        </span>
+            <Card className="border-neutral-200 shadow-sm col-span-1">
+              <CardHeader className="bg-neutral-50/50 border-b border-neutral-100 pb-4">
+                <CardTitle className="text-lg">Geofence Sensitivity</CardTitle>
+                <CardDescription>Adjust the strictness of the GPS bounds</CardDescription>
+              </CardHeader>
+              <CardContent className="pt-6">
+                <div className="mb-4">
+                  <div className="flex justify-between items-center mb-2">
+                    <Label className="text-sm text-neutral-700 font-medium">Confidence Threshold</Label>
+                    <span className="text-xs font-bold bg-neutral-100 px-2 py-1 rounded text-neutral-600">
+                      {Math.round(confidenceThreshold * 100)}%
+                    </span>
+                  </div>
+                  <input 
+                    type="range" 
+                    min="0" 
+                    max="1" 
+                    step="0.05" 
+                    className="w-full accent-neutral-900"
+                    value={confidenceThreshold}
+                    onChange={(e) => setConfidenceThreshold(parseFloat(e.target.value))}
+                  />
+                  <p className="text-xs text-neutral-500 mt-2">
+                    Higher percentages strictly require student devices to report highly accurate GPS locations.
+                  </p>
+                  
+                  <details className="mt-4 text-xs text-neutral-500 bg-neutral-50 p-3 rounded border border-neutral-100 group">
+                    <summary className="font-semibold text-neutral-700 cursor-pointer list-none flex items-center gap-2 select-none">
+                      <Info className="h-4 w-4 text-blue-500" />
+                      How does the scoring system work?
+                    </summary>
+                    <div className="mt-3 space-y-2.5 pl-5 border-l-2 border-neutral-200 ml-2">
+                      <p>Students start with a perfect <strong>100%</strong> score when they scan in, but lose points based on risk factors:</p>
+                      <ul className="list-disc pl-4 space-y-1.5 text-neutral-600">
+                        <li><strong>Location:</strong> Being completely outside the geofence radius applies a massive <strong>-50%</strong> penalty. Being inside applies a dynamic penalty based on distance from the center (up to <strong>-15%</strong>).</li>
+                        <li><strong>Lateness:</strong> Arriving late dynamically reduces the score based on elapsed time (up to <strong>-15%</strong> for 60+ mins late).</li>
+                        <li><strong>OTP Fallback:</strong> Typing an OTP instead of scanning the live QR code deducts <strong>-10%</strong>.</li>
+                        <li><strong>Fraud:</strong> Mock GPS apps or using multiple accounts on one device incurs severe penalties (-30% to -40%).</li>
+                      </ul>
+                      <div className="mt-2 text-blue-800 font-medium bg-blue-50/50 border border-blue-100 p-2 rounded">
+                        If a student's final score after deductions drops below your set threshold, their attendance is instantly rejected.
                       </div>
-                      <input 
-                        type="range" 
-                        min="0" 
-                        max="1" 
-                        step="0.05" 
-                        className="w-full accent-neutral-900"
-                        value={confidenceThreshold}
-                        onChange={(e) => setConfidenceThreshold(parseFloat(e.target.value))}
-                      />
-                      <p className="text-xs text-neutral-500 mt-2">
-                        Higher percentages strictly require student devices to report highly accurate GPS locations.
-                      </p>
-                      
-                      <details className="mt-4 text-xs text-neutral-500 bg-neutral-50 p-3 rounded border border-neutral-100 group">
-                        <summary className="font-semibold text-neutral-700 cursor-pointer list-none flex items-center gap-2 select-none">
-                          <Info className="h-4 w-4 text-blue-500" />
-                          How does the scoring system work?
-                        </summary>
-                        <div className="mt-3 space-y-2.5 pl-5 border-l-2 border-neutral-200 ml-2">
-                          <p>Students start with a perfect <strong>100%</strong> score when they scan in, but lose points based on risk factors:</p>
-                          <ul className="list-disc pl-4 space-y-1.5 text-neutral-600">
-                            <li><strong>Location:</strong> Being completely outside the geofence radius applies a massive <strong>-50%</strong> penalty. Being inside applies a dynamic penalty based on distance from the center (up to <strong>-15%</strong>).</li>
-                            <li><strong>Lateness:</strong> Arriving late dynamically reduces the score based on elapsed time (up to <strong>-15%</strong> for 60+ mins late).</li>
-                            <li><strong>OTP Fallback:</strong> Typing an OTP instead of scanning the live QR code deducts <strong>-10%</strong>.</li>
-                            <li><strong>Fraud:</strong> Mock GPS apps or using multiple accounts on one device incurs severe penalties (-30% to -40%).</li>
-                          </ul>
-                          <div className="mt-2 text-blue-800 font-medium bg-blue-50/50 border border-blue-100 p-2 rounded">
-                            If a student's final score after deductions drops below your set threshold, their attendance is instantly rejected.
-                          </div>
-                        </div>
-                      </details>
                     </div>
-                    <Button 
-                      className="w-full" 
-                      disabled={savingSettings || confidenceThreshold === (course.confidence_threshold ?? 0.85)}
-                      onClick={handleSaveSettings}
-                    >
-                      {savingSettings ? "Saving..." : "Save Settings"}
-                    </Button>
-                  </CardContent>
-                </Card>
+                  </details>
+                </div>
+                <Button 
+                  className="w-full" 
+                  disabled={savingSettings || confidenceThreshold === (course.confidence_threshold ?? 0.85)}
+                  onClick={handleSaveSettings}
+                >
+                  {savingSettings ? "Saving..." : "Save Settings"}
+                </Button>
+              </CardContent>
+            </Card>
 
-                <Card className="border-red-200 shadow-sm col-span-1 md:col-span-2 lg:col-span-3 bg-red-50/30">
+            {isOwner && (
                   <CardHeader className="pb-4">
                     <CardTitle className="text-lg text-red-700">Danger Zone</CardTitle>
                   </CardHeader>
@@ -998,7 +992,6 @@ export default function CourseView() {
                     </div>
                   </CardContent>
                 </Card>
-              </>
             )}
           </div>
         )}

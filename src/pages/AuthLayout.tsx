@@ -9,7 +9,7 @@ export default function AuthLayout({
   return (
     <div className="flex min-h-screen w-full font-sans">
       {/* Left Pane - Branding & Graphic */}
-      <div className="hidden lg:flex lg:w-1/2 relative bg-slate-900 flex-col justify-between overflow-hidden">
+      <div className="hidden lg:flex lg:w-1/2 relative bg-neutral-900 flex-col justify-between overflow-hidden">
         {/* Background Image */}
         <div
           className="absolute inset-0 z-0 bg-cover bg-center"
@@ -26,7 +26,7 @@ export default function AuthLayout({
         {/* Center Content */}
         <div className="relative z-10 p-10 flex-1 flex flex-col justify-center max-w-lg">
           <div className="inline-flex w-fit items-center gap-2 rounded-full border border-white/20 bg-white/10 px-3 py-1 mb-6 backdrop-blur-sm">
-            <div className="h-2 w-2 rounded-full bg-indigo-400" />
+            <div className="h-2 w-2 rounded-full bg-neutral-500" />
             <span className="text-xs font-medium text-white/90">
               Geo-Temporal Attendance System
             </span>
