@@ -91,6 +91,80 @@ function GlobalSearch() {
     </div>
   )
 }
+interface AppNotification {
+  id: string
+  course_id: string
+  type: string
+  payload: any
+  created_at: string
+}
+
+function NotificationPopover() {
+  const [notifications, setNotifications] = useState<AppNotification[]>([])
+  const [isOpen, setIsOpen] = useState(false)
+  
+  useEffect(() => {
+    api.get<AppNotification[]>('/notifications')
+      .then(data => setNotifications(data || []))
+      .catch(() => {})
+  }, [])
+  
+  const handleMarkSeen = async (id: string) => {
+    try {
+      await api.post(`/notifications/${id}/seen`, {})
+      setNotifications(prev => prev.filter(n => n.id !== id))
+    } catch (e) {}
+  }
+  
+  const getNotificationText = (n: AppNotification) => {
+    if (n.type === 'session_starting') return `Session starting: ${n.payload.title}`
+    if (n.type === 'schedule_created') return `New schedule at ${n.payload.venue}`
+    if (n.type === 'schedule_updated') return `Schedule updated`
+    return 'New notification'
+  }
+  
+  return (
+    <div className="relative">
+      <Button variant="ghost" size="icon" className="text-neutral-500 hover:text-neutral-700 relative" onClick={() => setIsOpen(!isOpen)}>
+        <Bell className="h-5 w-5" />
+        {notifications.length > 0 && (
+          <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full" />
+        )}
+      </Button>
+      
+      {isOpen && (
+        <div className="absolute right-0 mt-2 w-80 bg-white rounded-xl shadow-xl border border-neutral-200 z-50 overflow-hidden">
+          <div className="p-3 border-b border-neutral-100 bg-neutral-50">
+            <h3 className="font-semibold text-neutral-900 text-sm">Notifications</h3>
+          </div>
+          <div className="max-h-80 overflow-y-auto">
+            {notifications.length === 0 ? (
+              <div className="p-8 text-center text-sm text-neutral-500">
+                You're all caught up!
+              </div>
+            ) : (
+              <div className="divide-y divide-neutral-100">
+                {notifications.map(n => (
+                  <div key={n.id} className="p-3 hover:bg-neutral-50 flex flex-col gap-2 transition-colors">
+                    <div className="flex justify-between items-start gap-2">
+                      <p className="text-sm text-neutral-800 leading-snug">{getNotificationText(n)}</p>
+                      <button onClick={() => handleMarkSeen(n.id)} className="text-neutral-400 hover:text-neutral-900 p-1 rounded-full shrink-0" title="Mark as read">
+                        <div className="h-2 w-2 rounded-full bg-blue-500 hover:bg-neutral-300 transition-colors" />
+                      </button>
+                    </div>
+                    <p className="text-xs text-neutral-400">
+                      {new Date(n.created_at).toLocaleDateString()}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
 
 export default function DashboardLayout() {
   const { user, isLoading, logout } = useAuth()
@@ -191,9 +265,7 @@ export default function DashboardLayout() {
           <div className="flex items-center gap-2 md:gap-4">
             <GlobalSearch />
             
-            <Button variant="ghost" size="icon" className="text-neutral-500 hover:text-neutral-700">
-              <Bell className="h-5 w-5" />
-            </Button>
+            <NotificationPopover />
             
             <div className="md:hidden">
               <Button variant="ghost" size="icon" onClick={logout} className="text-destructive">

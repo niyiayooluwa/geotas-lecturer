@@ -46,6 +46,7 @@ export default function CourseView() {
   
   const [course, setCourse] = useState<Course | null>(null)
   const [members, setMembers] = useState<Member[]>([])
+  const [schedules, setSchedules] = useState<any[]>([])
   const [sessions, setSessions] = useState<Session[]>([])
   
   const [loading, setLoading] = useState(true)
@@ -79,6 +80,14 @@ export default function CourseView() {
       
       setCourse(foundCourse)
       setMembers(membersData || [])
+      
+      try {
+        const schedulesData = await api.get<any[]>(`/courses/${id}/schedules`)
+        setSchedules(schedulesData || [])
+      } catch (e) {
+        console.error("Failed to load schedules", e)
+      }
+      
       setSessions(sessionsData || [])
       if (foundCourse.confidence_threshold !== undefined) {
         setConfidenceThreshold(foundCourse.confidence_threshold)
@@ -246,7 +255,35 @@ export default function CourseView() {
     }
   }
 
-  const [activeTab, setActiveTab] = useState<"sessions" | "members" | "reports" | "settings">("sessions")
+  const [activeTab, setActiveTab] = useState<"sessions" | "members" | "reports" | "settings" | "schedules">("sessions")
+  const [isAddingSchedule, setIsAddingSchedule] = useState(false)
+  const [newSchedule, setNewSchedule] = useState({ day_of_week: 1, start_time: "09:00", end_time: "11:00", venue: "" })
+  
+  const createSchedule = async (e: React.FormEvent) => {
+    e.preventDefault()
+    try {
+      await api.post(`/courses/${id}/schedules`, {
+        ...newSchedule,
+        day_of_week: Number(newSchedule.day_of_week)
+      })
+      const schedulesData = await api.get<any[]>(`/courses/${id}/schedules`)
+      setSchedules(schedulesData || [])
+      setIsAddingSchedule(false)
+      setNewSchedule({ day_of_week: 1, start_time: "09:00", end_time: "11:00", venue: "" })
+    } catch (err) {
+      if (err instanceof ApiError) setError(err.message)
+    }
+  }
+
+  const deleteSchedule = async (scheduleId: string) => {
+    if (!window.confirm("Delete this schedule?")) return
+    try {
+      await api.delete(`/schedules/${scheduleId}`)
+      setSchedules(prev => prev.filter(s => s.id !== scheduleId))
+    } catch (err) {
+      if (err instanceof ApiError) setError(err.message)
+    }
+  }
 
   if (loading) return <div className="animate-pulse">Loading course details...</div>
   if (!course) return (
@@ -489,6 +526,16 @@ export default function CourseView() {
             Reports
           </button>
           <button
+            onClick={() => setActiveTab("schedules")}
+            className={`whitespace-nowrap pb-4 px-1 border-b-2 font-medium text-sm transition-colors ${
+              activeTab === "schedules"
+                ? "border-neutral-900 text-neutral-900"
+                : "border-transparent text-neutral-500 hover:text-neutral-700 hover:border-neutral-300"
+            }`}
+          >
+            Schedules
+          </button>
+          <button
             onClick={() => setActiveTab("settings")}
             className={`whitespace-nowrap pb-4 px-1 border-b-2 font-medium text-sm transition-colors ${
               activeTab === "settings"
@@ -720,6 +767,110 @@ export default function CourseView() {
                         View Session Report
                       </Button>
                     </CardContent>
+                  </Card>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* SCHEDULES TAB */}
+        {activeTab === "schedules" && (
+          <div className="space-y-6">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between bg-neutral-50 p-6 rounded-2xl border border-neutral-200 gap-4">
+              <div>
+                <h3 className="text-lg font-semibold text-neutral-900 mb-1">Course Schedules</h3>
+                <p className="text-sm text-neutral-500">Weekly timetable for this course.</p>
+              </div>
+              {isOwner && !isAddingSchedule && (
+                <Button 
+                  className="bg-neutral-900 hover:bg-neutral-800 text-white whitespace-nowrap" 
+                  onClick={() => setIsAddingSchedule(true)}
+                >
+                  Add Schedule
+                </Button>
+              )}
+            </div>
+            
+            {isAddingSchedule && isOwner && (
+              <Card className="border-neutral-200 shadow-sm border-dashed bg-neutral-50/50">
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-base">New Schedule</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <form onSubmit={createSchedule} className="space-y-4">
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                      <div className="space-y-2">
+                        <Label>Day of Week</Label>
+                        <select 
+                          className="flex h-10 w-full items-center justify-between rounded-md border border-neutral-200 bg-white px-3 py-2 text-sm ring-offset-white focus:outline-none focus:ring-2 focus:ring-neutral-900"
+                          value={newSchedule.day_of_week}
+                          onChange={e => setNewSchedule({...newSchedule, day_of_week: Number(e.target.value)})}
+                        >
+                          <option value={1}>Monday</option>
+                          <option value={2}>Tuesday</option>
+                          <option value={3}>Wednesday</option>
+                          <option value={4}>Thursday</option>
+                          <option value={5}>Friday</option>
+                          <option value={6}>Saturday</option>
+                          <option value={7}>Sunday</option>
+                        </select>
+                      </div>
+                      <div className="space-y-2">
+                        <Label>Start Time</Label>
+                        <Input type="time" required value={newSchedule.start_time} onChange={e => setNewSchedule({...newSchedule, start_time: e.target.value})} />
+                      </div>
+                      <div className="space-y-2">
+                        <Label>End Time</Label>
+                        <Input type="time" required value={newSchedule.end_time} onChange={e => setNewSchedule({...newSchedule, end_time: e.target.value})} />
+                      </div>
+                      <div className="space-y-2">
+                        <Label>Venue</Label>
+                        <Input type="text" required placeholder="e.g. LT1" value={newSchedule.venue} onChange={e => setNewSchedule({...newSchedule, venue: e.target.value})} />
+                      </div>
+                    </div>
+                    <div className="flex gap-2 justify-end pt-2">
+                      <Button type="button" variant="ghost" onClick={() => setIsAddingSchedule(false)}>Cancel</Button>
+                      <Button type="submit" className="bg-neutral-900 hover:bg-neutral-800 text-white">Save Schedule</Button>
+                    </div>
+                  </form>
+                </CardContent>
+              </Card>
+            )}
+            
+            {schedules.length === 0 && !isAddingSchedule ? (
+              <div className="text-center py-12 bg-neutral-50 rounded-2xl border border-neutral-200 border-dashed">
+                <p className="text-neutral-500 font-medium">No schedules set.</p>
+                {isOwner && <p className="text-sm text-neutral-400 mt-1">Add a schedule slot to notify students.</p>}
+              </div>
+            ) : (
+              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                {schedules.map(schedule => (
+                  <Card key={schedule.id} className="border-neutral-200 shadow-sm relative group">
+                    <CardHeader className="pb-3 border-b border-neutral-100 bg-neutral-50/50">
+                      <div className="flex justify-between items-start">
+                        <div>
+                          <CardTitle className="text-base text-neutral-900">
+                            {['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'][schedule.day_of_week - 1]}
+                          </CardTitle>
+                          <CardDescription className="text-xs mt-1 text-neutral-600 font-medium">
+                            {schedule.start_time} - {schedule.end_time}
+                          </CardDescription>
+                        </div>
+                      </div>
+                    </CardHeader>
+                    <CardContent className="pt-4">
+                      <div className="flex items-center gap-2 text-sm text-neutral-600">
+                        <span className="font-medium">Venue:</span> {schedule.venue}
+                      </div>
+                    </CardContent>
+                    {isOwner && (
+                      <div className="absolute top-2 right-2 md:opacity-0 group-hover:opacity-100 transition-opacity">
+                        <Button variant="ghost" size="icon" className="h-8 w-8 text-neutral-400 hover:text-red-500 bg-white shadow-sm border border-neutral-200" onClick={() => deleteSchedule(schedule.id)}>
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    )}
                   </Card>
                 ))}
               </div>
