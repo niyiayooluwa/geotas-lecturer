@@ -2,7 +2,7 @@ import { useState, useEffect } from "react"
 import { useParams, useNavigate } from "react-router-dom"
 import { api, ApiError } from "@/lib/api"
 import { Button } from "@/components/ui/button"
-import { ArrowLeft, Search, UserCheck, AlertTriangle, ShieldAlert } from "lucide-react"
+import { ArrowLeft, Search, AlertTriangle, ShieldAlert } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 
 interface AttendanceRecord {

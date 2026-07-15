@@ -17,6 +17,7 @@ interface Course {
   department: string
   invite_code: string
   confidence_threshold?: number
+  sessions?: Session[]
 }
 
 interface Member {
