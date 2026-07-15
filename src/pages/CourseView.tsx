@@ -32,6 +32,8 @@ export default function CourseView() {
   const [rotating, setRotating] = useState(false)
   const [error, setError] = useState("")
 
+  const [toastMessage, setToastMessage] = useState("")
+
   useEffect(() => {
     if (id) {
       fetchCourseData()
@@ -40,11 +42,9 @@ export default function CourseView() {
 
   const fetchCourseData = async () => {
     try {
-      // Assuming these endpoints based on REST conventions. 
-      // If the backend doesn't support them yet, this will error nicely.
       const [courseData, membersData] = await Promise.all([
         api.get<Course>(`/courses/${id}`),
-        api.get<Member[]>(`/courses/${id}/members`).catch(() => []) // Fallback if not implemented
+        api.get<Member[]>(`/courses/${id}/members`).catch(() => []) 
       ])
       setCourse(courseData)
       setMembers(membersData || [])
@@ -64,6 +64,9 @@ export default function CourseView() {
     try {
       const response = await api.post<{ invite_code: string }>(`/courses/${id}/invite-code/rotate`, {})
       setCourse((prev) => prev ? { ...prev, invite_code: response.invite_code } : null)
+      
+      setToastMessage("Old code is now invalid")
+      setTimeout(() => setToastMessage(""), 4000)
     } catch (err) {
       if (err instanceof ApiError) setError(err.message)
       else setError("Failed to rotate invite code")
@@ -72,13 +75,13 @@ export default function CourseView() {
     }
   }
 
-  const handleRemoveMember = async (memberId: string) => {
-    if (!window.confirm("Are you sure you want to remove this member?")) return
+  const handleRemoveMember = async (member: Member) => {
+    if (!window.confirm(`Remove ${member.first_name} ${member.last_name} from this course? Their attendance records will be deleted.`)) return
 
     setError("")
     try {
-      await api.delete(`/courses/${id}/members/${memberId}`)
-      setMembers(members.filter(m => m.id !== memberId))
+      await api.delete(`/courses/${id}/members/${member.id}`)
+      setMembers(members.filter(m => m.id !== member.id))
     } catch (err) {
       if (err instanceof ApiError) setError(err.message)
       else setError("Failed to remove member")
@@ -94,7 +97,14 @@ export default function CourseView() {
   )
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 relative">
+      {/* Custom Toast */}
+      {toastMessage && (
+        <div className="fixed bottom-6 right-6 z-50 bg-slate-900 text-white px-6 py-3 rounded-md shadow-lg font-medium animate-in slide-in-from-bottom-5">
+          {toastMessage}
+        </div>
+      )}
+
       <div className="flex items-center gap-4">
         <Button variant="outline" size="icon" asChild>
           <Link to="/"><ArrowLeft className="h-4 w-4" /></Link>
@@ -154,7 +164,7 @@ export default function CourseView() {
             ) : (
               <div className="divide-y border rounded-md">
                 {members.map(member => (
-                  <div key={member.id} className="flex items-center justify-between p-4 hover:bg-slate-50">
+                  <div key={member.id} className="flex items-center justify-between p-4 hover:bg-slate-50 transition-colors">
                     <div>
                       <p className="font-medium">{member.first_name} {member.last_name}</p>
                       <p className="text-sm text-muted-foreground">{member.email}</p>
@@ -167,7 +177,7 @@ export default function CourseView() {
                         variant="ghost" 
                         size="icon" 
                         className="text-destructive hover:bg-destructive/10"
-                        onClick={() => handleRemoveMember(member.id)}
+                        onClick={() => handleRemoveMember(member)}
                       >
                         <Trash2 className="h-4 w-4" />
                       </Button>
