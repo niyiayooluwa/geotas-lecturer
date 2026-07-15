@@ -62,7 +62,7 @@ export default function Register() {
   }
 
   const RequirementItem = ({ met, text }: { met: boolean; text: string }) => (
-    <div className={`flex items-center gap-2 text-sm transition-colors ${met ? 'text-green-600' : 'text-slate-500'}`}>
+    <div className={`flex items-center gap-2 text-sm transition-colors ${met ? 'text-green-600' : 'text-neutral-500'}`}>
       {met ? <CheckCircle2 className="h-4 w-4" /> : <Circle className="h-4 w-4" />}
       <span>{text}</span>
     </div>
@@ -72,9 +72,9 @@ export default function Register() {
 
   return (
     <div className="w-full pb-8">
-      <p className="text-sm font-medium text-slate-500 mb-2 uppercase tracking-wider">Lecturer portal</p>
-      <h2 className="text-3xl font-semibold tracking-tight text-slate-900 mb-2">Create an account</h2>
-      <p className="text-slate-500 mb-8">Sign up to manage your courses and track attendance.</p>
+      <p className="text-sm font-medium text-neutral-500 mb-2 uppercase tracking-wider">Lecturer portal</p>
+      <h2 className="text-3xl font-semibold tracking-tight text-neutral-900 mb-2">Create an account</h2>
+      <p className="text-neutral-500 mb-8">Sign up to manage your courses and track attendance.</p>
       
       <form onSubmit={handleSubmit} className="space-y-4">
         {error && !isEmailError && (
@@ -85,7 +85,7 @@ export default function Register() {
         
         <div className="grid grid-cols-2 gap-4">
           <div className="space-y-2">
-            <Label htmlFor="firstName" className="text-slate-700">First Name</Label>
+            <Label htmlFor="firstName" className="text-neutral-700">First Name</Label>
             <Input 
               id="firstName" 
               required 
@@ -95,7 +95,7 @@ export default function Register() {
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="lastName" className="text-slate-700">Last Name</Label>
+            <Label htmlFor="lastName" className="text-neutral-700">Last Name</Label>
             <Input 
               id="lastName" 
               required 
@@ -107,7 +107,7 @@ export default function Register() {
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="email" className={isEmailError ? "text-red-600" : "text-slate-700"}>
+          <Label htmlFor="email" className={isEmailError ? "text-red-600" : "text-neutral-700"}>
             University Email (.edu.ng)
           </Label>
           <Input 
@@ -126,7 +126,7 @@ export default function Register() {
         
         <div className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="password" className="text-slate-700">Password</Label>
+            <Label htmlFor="password" className="text-neutral-700">Password</Label>
             <div className="relative">
               <Input 
                 id="password" 
@@ -139,7 +139,7 @@ export default function Register() {
               <button 
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3 top-3 text-slate-400 hover:text-slate-600"
+                className="absolute right-3 top-3 text-neutral-400 hover:text-neutral-600"
                 tabIndex={-1}
               >
                 {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
@@ -156,7 +156,7 @@ export default function Register() {
           </div>
           
           <div className="space-y-2">
-            <Label htmlFor="confirmPassword" className="text-slate-700">Confirm Password</Label>
+            <Label htmlFor="confirmPassword" className="text-neutral-700">Confirm Password</Label>
             <div className="relative">
               <Input 
                 id="confirmPassword" 
@@ -169,7 +169,7 @@ export default function Register() {
               <button 
                 type="button"
                 onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                className="absolute right-3 top-3 text-slate-400 hover:text-slate-600"
+                className="absolute right-3 top-3 text-neutral-400 hover:text-neutral-600"
                 tabIndex={-1}
               >
                 {showConfirmPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
@@ -179,15 +179,15 @@ export default function Register() {
         </div>
 
         <div className="pt-2">
-          <Button type="submit" className="w-full h-11 text-base bg-indigo-600 hover:bg-indigo-700" disabled={loading}>
+          <Button type="submit" className="w-full h-11 text-base bg-neutral-900 hover:bg-neutral-800" disabled={loading}>
             {loading ? "Creating account..." : "Sign up for dashboard"}
           </Button>
         </div>
       </form>
 
-      <div className="mt-8 text-center text-sm text-slate-500">
+      <div className="mt-8 text-center text-sm text-neutral-500">
         Already have an account?{" "}
-        <Link to="/login" className="font-semibold text-indigo-600 hover:text-indigo-500">
+        <Link to="/login" className="font-semibold text-neutral-900 hover:text-neutral-700">
           Sign in
         </Link>
       </div>
