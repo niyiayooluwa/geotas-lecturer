@@ -977,10 +977,11 @@ export default function CourseView() {
             </Card>
 
             {isOwner && (
-                  <CardHeader className="pb-4">
-                    <CardTitle className="text-lg text-red-700">Danger Zone</CardTitle>
-                  </CardHeader>
-                  <CardContent>
+              <Card className="border-red-200 mt-6">
+                <CardHeader className="pb-4">
+                  <CardTitle className="text-lg text-red-700">Danger Zone</CardTitle>
+                </CardHeader>
+                <CardContent>
                     <div className="flex items-center justify-between">
                       <div>
                         <h4 className="font-medium text-neutral-900">Delete Course</h4>
