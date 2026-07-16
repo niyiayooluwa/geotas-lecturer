@@ -95,6 +95,44 @@ export default function CourseMasterReport() {
     return (presentCount / weeks.length) * 100
   }
 
+  const exportToCSV = () => {
+    if (students.length === 0) return
+
+    const headers = ["First Name", "Last Name", "Matriculation Number", "Total Rate (%)"]
+    weeks.forEach(w => headers.push(`Week ${w} Score (%)`))
+
+    const rows = students.map(student => {
+      const rate = Math.round(getAttendanceRate(student.weeks))
+      const row = [
+        `"${student.first_name || ''}"`,
+        `"${student.last_name || ''}"`,
+        `"${student.matriculation_number || ''}"`,
+        rate
+      ]
+      
+      weeks.forEach(w => {
+        const score = student.weeks[w]
+        if (score !== undefined) {
+          row.push(Math.round(score * 100))
+        } else {
+          row.push("Absent")
+        }
+      })
+      
+      return row.join(",")
+    })
+
+    const csvContent = [headers.join(","), ...rows].join("\n")
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
+    const url = URL.createObjectURL(blob)
+    const link = document.createElement("a")
+    link.setAttribute("href", url)
+    link.setAttribute("download", `course_${id}_attendance_report.csv`)
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+  }
+
   if (loading) return <div className="animate-pulse p-8">Building master report...</div>
   if (error) return <div className="text-red-500 p-8">{error}</div>
 
@@ -110,7 +148,7 @@ export default function CourseMasterReport() {
             <p className="text-neutral-500 text-sm">Aggregated attendance matrix across all weeks</p>
           </div>
         </div>
-        <Button variant="outline" className="gap-2" onClick={() => alert('CSV Export coming soon!')}>
+        <Button variant="outline" className="gap-2" onClick={exportToCSV}>
           <Download className="h-4 w-4" /> Export CSV
         </Button>
       </div>
