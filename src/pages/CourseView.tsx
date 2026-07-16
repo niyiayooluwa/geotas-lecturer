@@ -144,6 +144,8 @@ export default function CourseView() {
   const [showSessionModal, setShowSessionModal] = useState(false)
   const [sessionWeek, setSessionWeek] = useState(1)
   const [sessionRadius, setSessionRadius] = useState(50.0)
+  const [qrRotationSecs, setQrRotationSecs] = useState(30)
+  const [otpRotationSecs, setOtpRotationSecs] = useState(60)
   const [isStartingSession, setIsStartingSession] = useState(false)
   const [locationError, setLocationError] = useState("")
   const [memberSearchQuery, setMemberSearchQuery] = useState("")
@@ -171,7 +173,9 @@ export default function CourseView() {
             week_number: sessionWeek,
             latitude: position.coords.latitude,
             longitude: position.coords.longitude,
-            radius_meters: sessionRadius
+            radius_meters: sessionRadius,
+            qr_rotation_secs: qrRotationSecs,
+            otp_rotation_secs: otpRotationSecs
           })
           
           const updatedSessions = [newSession, ...sessions]
@@ -401,6 +405,30 @@ export default function CourseView() {
                       required 
                       value={sessionRadius} 
                       onChange={(e) => setSessionRadius(parseFloat(e.target.value))} 
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="qrRotation">QR Rotation (secs)</Label>
+                    <Input 
+                      id="qrRotation" 
+                      type="number" 
+                      min="5" 
+                      max="300" 
+                      required 
+                      value={qrRotationSecs} 
+                      onChange={(e) => setQrRotationSecs(parseInt(e.target.value))} 
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="otpRotation">OTP Rotation (secs)</Label>
+                    <Input 
+                      id="otpRotation" 
+                      type="number" 
+                      min="15" 
+                      max="300" 
+                      required 
+                      value={otpRotationSecs} 
+                      onChange={(e) => setOtpRotationSecs(parseInt(e.target.value))} 
                     />
                   </div>
                 </div>
