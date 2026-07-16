@@ -9,6 +9,16 @@ import { ArrowLeft, RefreshCw, Trash2, Users, MapPin, Search, Info } from "lucid
 
 import { useAuth } from "@/context/AuthContext"
 
+// Module-level in-memory cache so back-navigation doesn't re-fetch everything.
+// Keyed by course ID. Invalidated explicitly after any mutating action.
+interface CourseCache {
+  course: Course
+  members: Member[]
+  sessions: Session[]
+  schedules: any[]
+}
+const courseCache = new Map<string, CourseCache>()
+
 interface Course {
   id: string
   owner_id: string
@@ -58,7 +68,20 @@ export default function CourseView() {
 
   useEffect(() => {
     if (id) {
-      fetchCourseData()
+      const cached = courseCache.get(id)
+      if (cached) {
+        // Restore from cache instantly — no network request needed.
+        setCourse(cached.course)
+        setMembers(cached.members)
+        setSessions(cached.sessions)
+        setSchedules(cached.schedules)
+        if (cached.course.confidence_threshold !== undefined) {
+          setConfidenceThreshold(cached.course.confidence_threshold)
+        }
+        setLoading(false)
+      } else {
+        fetchCourseData()
+      }
     }
   }, [id])
 
@@ -81,10 +104,11 @@ export default function CourseView() {
       
       setCourse(foundCourse)
       setMembers(membersData || [])
-      
+
+      let schedulesData: any[] = []
       try {
-        const schedulesData = await api.get<any[]>(`/courses/${id}/schedules`)
-        setSchedules(schedulesData || [])
+        schedulesData = await api.get<any[]>(`/courses/${id}/schedules`) || []
+        setSchedules(schedulesData)
       } catch (e) {
         console.error("Failed to load schedules", e)
       }
@@ -93,6 +117,14 @@ export default function CourseView() {
       if (foundCourse.confidence_threshold !== undefined) {
         setConfidenceThreshold(foundCourse.confidence_threshold)
       }
+
+      // Populate cache after a successful full fetch.
+      courseCache.set(id!, {
+        course: foundCourse,
+        members: membersData || [],
+        sessions: sessionsData || [],
+        schedules: schedulesData,
+      })
     } catch (err) {
       console.error(err)
       if (err instanceof ApiError) {
@@ -142,7 +174,10 @@ export default function CourseView() {
             radius_meters: sessionRadius
           })
           
-          setSessions([newSession, ...sessions])
+          const updatedSessions = [newSession, ...sessions]
+          setSessions(updatedSessions)
+          // Invalidate cache — sessions list changed.
+          if (id) courseCache.delete(id)
           setToastMessage(`Week ${sessionWeek} session started successfully!`)
           setTimeout(() => setToastMessage(""), 4000)
           setShowSessionModal(false)
@@ -177,7 +212,8 @@ export default function CourseView() {
     try {
       const response = await api.post<{ invite_code: string }>(`/courses/${id}/invite-code/rotate`, {})
       setCourse((prev) => prev ? { ...prev, invite_code: response.invite_code } : null)
-      
+      // Invalidate cache — invite code changed.
+      if (id) courseCache.delete(id)
       setToastMessage("Old code is now invalid")
       setTimeout(() => setToastMessage(""), 4000)
     } catch (err) {
@@ -197,6 +233,8 @@ export default function CourseView() {
     try {
       await api.delete(`/courses/${id}/members/${member.user_id}`)
       setMembers(members.filter(m => m.user_id !== member.user_id))
+      // Invalidate cache — members list changed.
+      if (id) courseCache.delete(id)
       setToastMessage(`${member.first_name} removed`)
       setTimeout(() => setToastMessage(""), 4000)
     } catch (err) {
@@ -246,6 +284,8 @@ export default function CourseView() {
         confidence_threshold: confidenceThreshold
       })
       setCourse({ ...course, confidence_threshold: confidenceThreshold })
+      // Invalidate cache — settings changed.
+      if (id) courseCache.delete(id)
       setToastMessage("Settings saved successfully")
       setTimeout(() => setToastMessage(""), 4000)
     } catch (err) {
@@ -269,6 +309,8 @@ export default function CourseView() {
       })
       const schedulesData = await api.get<any[]>(`/courses/${id}/schedules`)
       setSchedules(schedulesData || [])
+      // Invalidate cache — schedules changed.
+      if (id) courseCache.delete(id)
       setIsAddingSchedule(false)
       setNewSchedule({ day_of_week: 1, start_time: "09:00", end_time: "11:00", venue: "" })
     } catch (err) {
@@ -281,6 +323,8 @@ export default function CourseView() {
     try {
       await api.delete(`/schedules/${scheduleId}`)
       setSchedules(prev => prev.filter(s => s.id !== scheduleId))
+      // Invalidate cache — schedules changed.
+      if (id) courseCache.delete(id)
     } catch (err) {
       if (err instanceof ApiError) setError(err.message)
     }
@@ -302,6 +346,8 @@ export default function CourseView() {
     try {
       await api.delete(`/sessions/${sessionId}`)
       setSessions(sessions.filter(s => s.id !== sessionId))
+      // Invalidate cache — sessions list changed.
+      if (id) courseCache.delete(id)
       setToastMessage("Session deleted successfully")
       setTimeout(() => setToastMessage(""), 4000)
     } catch (err) {
@@ -737,14 +783,14 @@ export default function CourseView() {
             
             <h3 className="text-lg font-semibold text-neutral-900 mt-8 mb-4">Historical Sessions</h3>
             
-            {course.sessions?.length === 0 ? (
+            {sessions.length === 0 ? (
               <div className="text-center py-12 bg-neutral-50 rounded-2xl border border-neutral-200 border-dashed">
                 <p className="text-neutral-500 font-medium">No sessions recorded yet.</p>
                 <p className="text-sm text-neutral-400 mt-1">Start a live session to begin tracking attendance.</p>
               </div>
             ) : (
               <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                {course.sessions?.map(session => (
+                {sessions.map(session => (
                   <Card key={session.id} className="border-neutral-200 shadow-sm hover:shadow-md transition-shadow">
                     <CardHeader className="pb-3 border-b border-neutral-100 bg-neutral-50/50">
                       <div className="flex justify-between items-start">
