@@ -9,6 +9,7 @@ import { Eye, EyeOff, CheckCircle2, Circle } from "lucide-react"
 export default function Register() {
   const [firstName, setFirstName] = useState("")
   const [lastName, setLastName] = useState("")
+  const [department, setDepartment] = useState("")
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [confirmPassword, setConfirmPassword] = useState("")
@@ -42,11 +43,12 @@ export default function Register() {
     setLoading(true)
 
     try {
-      await api.post("/auth/register", {
+      await api.post("/auth/lecturer/register", {
         first_name: firstName,
         last_name: lastName,
         email,
         password,
+        department,
       })
       
       navigate("/login", { state: { message: "Registration successful. Please login." } })
@@ -104,6 +106,18 @@ export default function Register() {
               className="h-11"
             />
           </div>
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="department" className="text-neutral-700">Department</Label>
+          <Input 
+            id="department" 
+            required 
+            value={department}
+            onChange={(e) => setDepartment(e.target.value)}
+            className="h-11"
+            placeholder="e.g. Computer Science"
+          />
         </div>
 
         <div className="space-y-2">
