@@ -43,7 +43,7 @@ export default function Register() {
     setLoading(true)
 
     try {
-      await api.post("/auth/lecturer/register", {
+      await api.post("/auth/register", {
         first_name: firstName,
         last_name: lastName,
         email,
